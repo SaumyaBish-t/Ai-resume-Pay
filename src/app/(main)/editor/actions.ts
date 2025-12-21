@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { resumeSchema, ResumeValues } from "@/lib/validation";
-// import { auth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import {del, put} from "@vercel/blob"
 import path from "path";
 export async function saveResume(values:ResumeValues){
@@ -14,17 +14,17 @@ export async function saveResume(values:ResumeValues){
         photo,workExperiences,educations,...resumeValues
     } =resumeSchema.parse(values)
 
-    // const {userId}=await auth();
+    const {userId}=await auth();
 
-    // if(!userId){
-    //     throw new Error("User is not authenticated");
+    if(!userId){
+        throw new Error("User is not authenticated");
 
-    // }
+    }
 
     //TODO:Check resume count for non-premium users
 
     const existingResume=id
-    ? await prisma.resume.findUnique({where:{id}})
+    ? await prisma.resume.findUnique({where:{id,userId}})
     :null
 
     if(id && !existingResume){
@@ -77,7 +77,7 @@ export async function saveResume(values:ResumeValues){
         return prisma.resume.create({
              data: {
                 ...resumeValues,
-                userId: "anonymous",
+                userId,
                 photoUrl:newPhotoUrl,
                 workExperiences:{
                     create:workExperiences?.map(exp=>({

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import ResumeEditor from "./ResumeEditor";
 import { prisma } from "@/lib/prisma";
-// import { auth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { resumeDataInclude } from "@/lib/types";
 
 
@@ -16,14 +16,14 @@ export const metadata :Metadata = {
 export default async function Page({searchParams}:PageProps){
     const {resumeId}=await searchParams
 
-    // const {userId}=await auth();
+    const {userId}=await auth();
 
-    // if(!userId){
-    //     return null;
-    // }
+    if(!userId){
+        return null;
+    }
     const resumeToEdit=resumeId
     ? await prisma.resume.findUnique({
-        where:{id:resumeId},
+        where:{id:resumeId,userId},
         include:resumeDataInclude,
     })
     :null
