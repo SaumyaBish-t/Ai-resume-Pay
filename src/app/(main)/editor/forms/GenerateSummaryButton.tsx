@@ -1,22 +1,30 @@
 import LoadingButton from "@/components/LoadingButton";
 import { useToast } from "@/hooks/use-toast";
+import usePremiumModal from "@/hooks/usePremiumModal";
+import useSubscription from "@/hooks/useSubscription";
 import { ResumeValues } from "@/lib/validation";
 import { WandSparklesIcon } from "lucide-react";
 import { useState } from "react";
 import { generateSummary } from "./actions";
 
-
 interface GenerateSummaryButtonProps{
     resumeData:ResumeValues;
     onSummaryGenerated:(summary:string)=>void;
 }
+
 export default function GenerateSummaryButton({resumeData,onSummaryGenerated}:GenerateSummaryButtonProps){
     const {toast}=useToast();
-
+    const premiumModal = usePremiumModal();
+    const { canUseAI } = useSubscription();
     const [loading,setLoading]=useState(false);
 
     async function handleClick() {
-        //TODO : Block for non-premium users
+        if (!canUseAI()) {
+            premiumModal.setOpen(true);
+            return;
+        }
+        
+        // Premium/Premium Plus users can use AI features
         try{
             setLoading(true)
             const aiResponse=await generateSummary(resumeData);
@@ -32,15 +40,16 @@ export default function GenerateSummaryButton({resumeData,onSummaryGenerated}:Ge
         finally{
             setLoading(false);
         }
-        
     }
 
-    return <LoadingButton
-    variant="outline"
-    type="button"
-    onClick={handleClick}
-    loading={loading}>
-        <WandSparklesIcon className="size-4" />
-    </LoadingButton>
-
+    return (
+        <LoadingButton
+            variant="outline"
+            type="button"
+            onClick={handleClick}
+            loading={loading}
+        >
+            <WandSparklesIcon className="size-4" />
+        </LoadingButton>
+    );
 }

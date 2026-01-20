@@ -2,17 +2,27 @@
 
 import { Button } from "@/components/ui/button";
 import usePremiumModal from "@/hooks/usePremiumModal";
+import useSubscription from "@/hooks/useSubscription";
 import { PlusSquare } from "lucide-react";
 import Link from "next/link";
+import { useEffect } from "react";
 
 interface CreateResumeButtonProps {
-  canCreate: boolean;
+  resumeCount: number;
 }
-export default function CreateResumeButton({
-  canCreate,
-}: CreateResumeButtonProps) {
+
+export default function CreateResumeButton({ resumeCount }: CreateResumeButtonProps) {
   const premiumModal = usePremiumModal();
-  if (canCreate) {
+  const { canCreateResume, setSubscription } = useSubscription();
+
+  // Update resume count in subscription state
+  useEffect(() => {
+    setSubscription({ tier: "free", resumeCount });
+  }, [resumeCount, setSubscription]);
+
+  const canUserCreateResume = canCreateResume();
+
+  if (canUserCreateResume) {
     return (
       <Button asChild className="mx-auto flex w-fit gap-2">
         <Link href="/editor">
@@ -22,6 +32,7 @@ export default function CreateResumeButton({
       </Button>
     );
   }
+
   return (
     <Button
       onClick={() => premiumModal.setOpen(true)}
